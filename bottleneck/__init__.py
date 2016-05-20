@@ -28,6 +28,8 @@ try:
 except:
     pass
 
+from .threads import *
+
 from bottleneck.version import __version__
 from bottleneck.benchmark.bench import bench
 

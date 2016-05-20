@@ -5,6 +5,8 @@ import bottleneck as bn
 pool = None
 nthread = None
 
+__all__ = ['o_nansum', 'o_move_median', 'm_nansum', 'm_move_median']
+
 
 # ---------------------------------------------------------------------------
 # functions that take one array as input
