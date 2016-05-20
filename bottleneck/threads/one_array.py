@@ -6,11 +6,11 @@ pool = None
 nthread = None
 
 
-def p_nansum(arr, axis=None):
+def o_nansum(arr, axis=None):
     return reduces(bn.nansum, arr, axis=axis)
 
 
-def p_move_median(arr, window, min_count=None, axis=-1):
+def o_move_median(arr, window, min_count=None, axis=-1):
     return move(bn.move_median, arr, window=window, min_count=min_count,
                 axis=axis)
 
