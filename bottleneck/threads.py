@@ -6,17 +6,32 @@ pool = None
 nthread = None
 
 
+# ---------------------------------------------------------------------------
+# functions that take one array as input
+
 def o_nansum(arr, axis=None):
-    return reduces(bn.nansum, arr, axis=axis)
+    return o_reduce(bn.nansum, arr, axis=axis)
 
 
 def o_move_median(arr, window, min_count=None, axis=-1):
-    return move(bn.move_median, arr, window=window, min_count=min_count,
-                axis=axis)
+    return o_move(bn.move_median, arr, window=window, min_count=min_count,
+                  axis=axis)
 
 
 # ---------------------------------------------------------------------------
-# start and stop pool of threads
+# functions that a list of arrays as input
+
+def m_nansum(array_list, axis=None):
+    return m_reduce(bn.nansum, array_list, axis=axis)
+
+
+def m_move_median(array_list, window, min_count=None, axis=-1):
+    return m_move(bn.move_median, array_list, window=window, min_count=min_count,
+                  axis=axis)
+
+
+# ---------------------------------------------------------------------------
+# manage pool of threads
 
 def start_pool(nthreads=None):
     global pool
@@ -38,7 +53,7 @@ def stop_pool():
 # ---------------------------------------------------------------------------
 # utility functions
 
-def reduces(func, arr, **kwargs):
+def o_reduce(func, arr, **kwargs):
 
     # check that pool is running
     if pool is None:
@@ -81,7 +96,7 @@ def reduces(func, arr, **kwargs):
     return out
 
 
-def move(func, arr, **kwargs):
+def o_move(func, arr, **kwargs):
 
     # check that pool is running
     if pool is None:
@@ -122,6 +137,47 @@ def move(func, arr, **kwargs):
         out = np.concatenate(out_list, split_axis)
 
     return out
+
+
+def m_reduce(func, array_list, **kwargs):
+
+    # check that pool is running
+    if pool is None:
+        raise ValueError("The thread pool has not been started")
+
+    # axis
+    axis = kwargs['axis']
+    if axis is None:
+        array_list = [a.ravel() for a in array_list]
+        axis = 0
+
+    # the function can have only one input (arr); make it so
+    unary_func = make_unary(func, **kwargs)
+
+    # thread it!
+    out_list = pool.map(unary_func, array_list)
+
+    return out_list
+
+
+def m_move(func, array_list, **kwargs):
+
+    # check that pool is running
+    if pool is None:
+        raise ValueError("The thread pool has not been started")
+
+    # axis
+    axis = kwargs['axis']
+    if axis is None:
+        raise ValueError("An `axis` value of None is not supported.")
+
+    # the function can have only one input (arr); make it so
+    unary_func = make_unary(func, **kwargs)
+
+    # thread it!
+    out_list = pool.map(unary_func, array_list)
+
+    return out_list
 
 
 def make_unary(func, **kwargs):
